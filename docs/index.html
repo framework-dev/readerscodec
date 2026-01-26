@@ -10,17 +10,17 @@
       // .then(display);
   </script>
   <script id="582" type="module" pinned="">
-    const draft = html`<div class="set">${theimage}</div>`;
+    const draft = htl.html`<div class="set">${theimage}</div>`;
     display(draft)
   </script>
-  <script id="6059" type="application/vnd.observable.javascript" pinned="">
+  <script id="6059" type="module" pinned="">
     paras
   </script>
   <script id="6141" type="application/vnd.observable.javascript" pinned="">
     spels
   </script>
   <script id="6143" type="application/vnd.observable.javascript" pinned="">
-    scores = scoresFromAlignment([maplebridgepoem]) // scoresDefaultTTR // change this to what is actually required before Download JSON
+    scores = scoresDefaultTTR; // scoresFromAlignment([maplebridgepoem]) // scoresDefaultTTR // change this to what is actually required before Download JSON
   </script>
   <script id="5729" type="application/vnd.observable.javascript" pinned="">
     parasConfig = ({ draft2: [] }) // , draft2: [], draft3: [], draft4: [] })
@@ -105,7 +105,7 @@
         text = text.substr(spelEnd); // put the rest in text
         spelStart = text.search(/\S/); // find the next nonwhitespace (if any)
       }
-      return `<div class="set">${newText}</div>`; // wrap in pre tags of same class
+      return newText;
     }
   </script>
   <script id="2154" type="text/markdown">
@@ -207,14 +207,6 @@
       return aSpels;
     }
   </script>
-  <script id="5937" type="text/html">
-    <div class="set">SAMPLE
-
-    Cobbett’s View
-                       broad vista north
-    Thomas’  Stone
-                       high   vista south</div>
-  </script>
   <script id="16" type="text/html" pinned="">
     <h4>CSS</h4>
     <style>
@@ -226,7 +218,7 @@
     */
 
       .set {
-        white-space: wrap;
+        white-space: pre-wrap;
         padding-right:20vw;
         position: relative;
         font-family: "Source Serif 4", "Source Serif Pro", serif;
@@ -238,7 +230,7 @@
           "wght" 300,
           "wdth" 100,
           "YTLC" 500;
-        line-height: 1.2;
+        line-height: 1.5;
         color: black;
       }
 
@@ -305,7 +297,9 @@
     ---
     ### Spanned Drafts
   </script>
-  <script id="4219" type="application/vnd.observable.javascript" pinned="">
-    spanned = html`${await addSpansTo(draft)}`
+  <script id="6200" type="module" pinned="">
+    const spanned = htl.html`<div class="set"></div>`;
+    spanned.innerHTML = addSpansTo(draft);
+    display(spanned);
   </script>
 </notebook>
