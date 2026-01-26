@@ -1,31 +1,17 @@
 <!doctype html>
 <notebook theme="air">
-  <title>Maple Bridge Night Anchor</title>
-  <script id="0" type="text/markdown">
-    # Maple Bridge Night Anchor
+  <title>Readers Codec</title>
+  <script id="1" type="text/markdown">
+    # Readers Codec
   </script>
-  <script id="6070" type="text/markdown">
-    ```
-    moon set crows call frost charged sky
-    river maple fishing lights encounter sadness sleep
-    bygone gentry walls beyond cold mountain shrine
-    mid night bell sound laps our vessel
-    ```
+  <script id="6195" type="module" pinned="">
+    const theimage = fetch("theimage.txt")
+      .then((response) => response.ok ? response.text() : Promise.reject(response.status));
+      // .then(display);
   </script>
-  <script id="582" type="text/html" pinned="">
-    <div class="set">blue moon full appears to set much later than the usual flock of scattered crows unsure of their next collective call call call in early frost leaving the spelt air charged with unease under our darkening sky now much later night a solemn ceremony down by the river to dedicate a young maple we will use as our primary point of reference the crew of the fishing boat reported being blinded by the patrol vessel’s intense lights much later in an intense encounter the activist spoke of our deep sadness and of the crisis that kept us from finding sleep silent witnesses to a bygone era of privilege once enjoyed exclusively by corporate gentry the walls of partisanship have become so high we no longer see the common goals moving beyond these stone boundaries much later we choose the cold isolation of the mountain to eat pray love at a remote shrine restricted by private developers and by mid june 2025 the comet would be visible in the night sky to the naked eyes of astronomers across the globe much later the activist rings a handheld bell to demand silence before the sound which our community hears when tracking the passage of time and the rising meltwater laps at the foundations of our traditional institutions once shelter for each and every smaller vessel from winter storm</div>
-  </script>
-  <script id="6194" type="text/markdown">
-    0 all prose<br>
-    1 random glow<br>
-    2 random noglow<br>
-    3 random glow<br>
-    4 random noglow<br>
-    5 erase<br>
-    6 poem to erase it<br>
-    7 poem to show it<br>
-    8 erase to add the prose<br>
-    9 all to erase it<br>
+  <script id="582" type="module" pinned="">
+    const draft = html`<div class="set">${theimage}</div>`;
+    display(draft)
   </script>
   <script id="6059" type="application/vnd.observable.javascript" pinned="">
     paras
@@ -36,24 +22,18 @@
   <script id="6143" type="application/vnd.observable.javascript" pinned="">
     scores = scoresFromAlignment([maplebridgepoem]) // scoresDefaultTTR // change this to what is actually required before Download JSON
   </script>
-  <script id="6183" type="application/vnd.observable.javascript" pinned="">
-    maplebridgeprose = FileAttachment("maplebridgeprose.json").json()
-  </script>
   <script id="5729" type="application/vnd.observable.javascript" pinned="">
     parasConfig = ({ draft2: [] }) // , draft2: [], draft3: [], draft4: [] })
     // Edit and construct this literal with properties that match
     // the cell names of paragraphs.
     // Other configuration is done in the config StrictObj:
   </script>
-  <script id="6192" type="application/vnd.observable.javascript" pinned="">
-    maplebridgepoem = FileAttachment("maplebridgepoem.json").json()
-  </script>
   <script id="3254" type="application/vnd.observable.javascript" pinned="">
     config = {
       let obj = {
         paraNames: Object.keys(parasConfig),
-        paraCells: [draft2], //, draft2, draft3, draft4],
-        spannedCells: [spanned2] // , spanned2, spanned3, spanned4]
+        paraCells: [draft], //, draft2, draft3, draft4],
+        spannedCells: [spanned] // , spanned2, spanned3, spanned4]
       };
       return new StrictObj(obj);
     }
@@ -72,26 +52,6 @@
     spanString = Array.from(spels.values())
       .map((spel) => spel.html)
       .join("")
-  </script>
-  <script id="4287" type="text/html" pinned="">
-    <div class="set">moon set crows call frost charged sky
-    river maple fishing lights encounter sadness sleep
-    bygone gentry walls beyond cold mountain shrine
-    mid night bell sound laps our vessel</div>
-  </script>
-  <script id="5853" type="text/html" pinned="">
-    <div class="set">supporters shouted <cite>stars</cite> <cite>stars</cite> in unison drowning out any
-    dissenting voices the pursuit of profit has eclipsed our
-    immortal words — others are effectively silenced,
-    disregarding the nuances of human hearing and critical
-    thinking our planet ends but critics argue</div>
-  </script>
-  <script id="6014" type="text/html" pinned="">
-    <div class="set">shift instead toward addressing the root causes
-    chase fleeting ambitions tilting at quintain clouds of
-    uncertainty — this rise has seen discourse sweep wings
-    across the ideological landscape through online communities
-    where misinformation and all of us must <cite>fly</cite></div>
   </script>
   <script id="4401" type="application/vnd.observable.javascript" pinned="">
     mapParaSpels = (spannedCells, paraNames) => {
@@ -346,15 +306,6 @@
     ### Spanned Drafts
   </script>
   <script id="4219" type="application/vnd.observable.javascript" pinned="">
-    spanned1 = html`${await addSpansTo(draft1)}`
-  </script>
-  <script id="4388" type="application/vnd.observable.javascript" pinned="">
-    spanned2 = html`${await addSpansTo(draft2)}`
-  </script>
-  <script id="5861" type="application/vnd.observable.javascript" pinned="">
-    spanned3 = html`${await addSpansTo(draft3)}`
-  </script>
-  <script id="6021" type="application/vnd.observable.javascript" pinned="">
-    spanned4 = html`${await addSpansTo(draft4)}`
+    spanned = html`${await addSpansTo(draft)}`
   </script>
 </notebook>
