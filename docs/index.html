@@ -210,26 +210,22 @@
   <script id="16" type="text/html" pinned="">
     <h4>CSS</h4>
     <style>
-
-    /*   @font-face {
-        font-family: 'Source Serif 4';
-        src: local('Source Serif 4')
-      }
-    */
+      @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap');
 
       .set {
         white-space: pre-wrap;
-        padding-right:20vw;
+        width: 60vw;
         position: relative;
         font-family: "Source Serif 4", "Source Serif Pro", serif;
         font-size: 2vw;
         font-variant-ligatures: no-common-ligatures;
         font-optical-sizing: auto;
         font-style: normal;
-        font-variation-settings:
+        font-weight: 300;
+        /* font-variation-settings:
           "wght" 300,
           "wdth" 100,
-          "YTLC" 500;
+          "YTLC" 500; */
         line-height: 1.5;
         color: black;
       }
@@ -237,11 +233,11 @@
       .spel {
         position: absolute;
         opacity: 0;
-        transition: all 1.5s ease-in-out; /* vendorless fallback */
-        -o-transition: all 1.5s ease-in-out; /* opera */
-        -ms-transition: all 1.5s ease-in-out; /* IE 10 */
-        -moz-transition: all 1.5s ease-in-out; /* Firefox */
-        -webkit-transition: all 1.5s ease-in-out; /*safari and chrome */
+        transition: all 1.5s ease-in-out;
+        -o-transition: all 1.5s ease-in-out;
+        -ms-transition: all 1.5s ease-in-out;
+        -moz-transition: all 1.5s ease-in-out;
+        -webkit-transition: all 1.5s ease-in-out;
       }
 
       .spel.visible {
@@ -253,11 +249,7 @@
         background-color: floralwhite;
         color: darkslategray;
         cursor: none;
-        overflow: hidden;
-        width: 60vw; /* This value should be calculated manually for notebooks that display */
-        height: 50vw; /* This value should be calculated manually for notebooks that display */
       }
-
     </style>
   </script>
   <script id="2088" type="text/markdown">
