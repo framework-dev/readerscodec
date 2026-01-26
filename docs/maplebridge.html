@@ -1,0 +1,360 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Maple Bridge Night Anchor</title>
+  <script id="0" type="text/markdown">
+    # Maple Bridge Night Anchor
+  </script>
+  <script id="6070" type="text/markdown">
+    ```
+    moon set crows call frost charged sky
+    river maple fishing lights encounter sadness sleep
+    bygone gentry walls beyond cold mountain shrine
+    mid night bell sound laps our vessel
+    ```
+  </script>
+  <script id="582" type="text/html" pinned="">
+    <div class="set">blue moon full appears to set much later than the usual flock of scattered crows unsure of their next collective call call call in early frost leaving the spelt air charged with unease under our darkening sky now much later night a solemn ceremony down by the river to dedicate a young maple we will use as our primary point of reference the crew of the fishing boat reported being blinded by the patrol vessel’s intense lights much later in an intense encounter the activist spoke of our deep sadness and of the crisis that kept us from finding sleep silent witnesses to a bygone era of privilege once enjoyed exclusively by corporate gentry the walls of partisanship have become so high we no longer see the common goals moving beyond these stone boundaries much later we choose the cold isolation of the mountain to eat pray love at a remote shrine restricted by private developers and by mid june 2025 the comet would be visible in the night sky to the naked eyes of astronomers across the globe much later the activist rings a handheld bell to demand silence before the sound which our community hears when tracking the passage of time and the rising meltwater laps at the foundations of our traditional institutions once shelter for each and every smaller vessel from winter storm</div>
+  </script>
+  <script id="6194" type="text/markdown">
+    0 all prose<br>
+    1 random glow<br>
+    2 random noglow<br>
+    3 random glow<br>
+    4 random noglow<br>
+    5 erase<br>
+    6 poem to erase it<br>
+    7 poem to show it<br>
+    8 erase to add the prose<br>
+    9 all to erase it<br>
+  </script>
+  <script id="6059" type="application/vnd.observable.javascript" pinned="">
+    paras
+  </script>
+  <script id="6141" type="application/vnd.observable.javascript" pinned="">
+    spels
+  </script>
+  <script id="6143" type="application/vnd.observable.javascript" pinned="">
+    scores = scoresFromAlignment([maplebridgepoem]) // scoresDefaultTTR // change this to what is actually required before Download JSON
+  </script>
+  <script id="6183" type="application/vnd.observable.javascript" pinned="">
+    maplebridgeprose = FileAttachment("maplebridgeprose.json").json()
+  </script>
+  <script id="5729" type="application/vnd.observable.javascript" pinned="">
+    parasConfig = ({ draft2: [] }) // , draft2: [], draft3: [], draft4: [] })
+    // Edit and construct this literal with properties that match
+    // the cell names of paragraphs.
+    // Other configuration is done in the config StrictObj:
+  </script>
+  <script id="6192" type="application/vnd.observable.javascript" pinned="">
+    maplebridgepoem = FileAttachment("maplebridgepoem.json").json()
+  </script>
+  <script id="3254" type="application/vnd.observable.javascript" pinned="">
+    config = {
+      let obj = {
+        paraNames: Object.keys(parasConfig),
+        paraCells: [draft2], //, draft2, draft3, draft4],
+        spannedCells: [spanned2] // , spanned2, spanned3, spanned4]
+      };
+      return new StrictObj(obj);
+    }
+  </script>
+  <script id="2861" type="application/vnd.observable.javascript" pinned="">
+    spels = mapParaSpels(config.get("spannedCells"), config.get("paraNames"))
+  </script>
+  <script id="5996" type="application/vnd.observable.javascript" pinned="">
+    paras = {
+      let pArray = Array.from(Object.values(parasConfig));
+      pArray = pArray.map((a) => a.map((i) => i.id));
+      return pArray;
+    }
+  </script>
+  <script id="5522" type="application/vnd.observable.javascript" pinned="">
+    spanString = Array.from(spels.values())
+      .map((spel) => spel.html)
+      .join("")
+  </script>
+  <script id="4287" type="text/html" pinned="">
+    <div class="set">moon set crows call frost charged sky
+    river maple fishing lights encounter sadness sleep
+    bygone gentry walls beyond cold mountain shrine
+    mid night bell sound laps our vessel</div>
+  </script>
+  <script id="5853" type="text/html" pinned="">
+    <div class="set">supporters shouted <cite>stars</cite> <cite>stars</cite> in unison drowning out any
+    dissenting voices the pursuit of profit has eclipsed our
+    immortal words — others are effectively silenced,
+    disregarding the nuances of human hearing and critical
+    thinking our planet ends but critics argue</div>
+  </script>
+  <script id="6014" type="text/html" pinned="">
+    <div class="set">shift instead toward addressing the root causes
+    chase fleeting ambitions tilting at quintain clouds of
+    uncertainty — this rise has seen discourse sweep wings
+    across the ideological landscape through online communities
+    where misinformation and all of us must <cite>fly</cite></div>
+  </script>
+  <script id="4401" type="application/vnd.observable.javascript" pinned="">
+    mapParaSpels = (spannedCells, paraNames) => {
+      let spels = new Map();
+      for (const [idx, spannedCell] of spannedCells.entries()) {
+        parasConfig[paraNames[idx]] = [];
+        let spelArray = getSpelArray(spannedCell, spels.size);
+        spelArray.forEach((spel) => {
+          spels.set(spel.id, {
+            string: spel.string,
+            leftvw: spel.leftvw,
+            topvw: spel.topvw,
+            html: spel.html
+          });
+          // array of spells added to paraName property of parasConfig
+          parasConfig[paraNames[idx]].push(spel);
+        });
+      }
+      return spels;
+    }
+  </script>
+  <script id="844" type="application/vnd.observable.javascript" pinned="">
+    getSpelArray = (spannedElem, size = 0) => {
+      // builds the spels array of spel objects and returns styled spans for display
+      let spelArray = [];
+      let verseSpans = Array.from(spannedElem.children);
+      verseSpans.forEach((span, idx) => {
+        let spel = {};
+        spel.id = span.innerText + "_" + (idx + size);
+        spel.string = span.innerText;
+        spel.leftvw = pxToVw(span.offsetLeft);
+        spel.topvw = pxToVw(span.offsetTop);
+        spel.html = `<span id="${spel.id}" class="spel" style="left:${spel.leftvw}vw;top:${spel.topvw}vw">${span.innerHTML}</span>`;
+        spelArray.push(spel);
+      });
+      return spelArray;
+    }
+  </script>
+  <script id="974" type="application/vnd.observable.javascript" pinned="">
+    addSpansTo = (draftElem) => {
+      let newText = ``; // this will hold html for the new draftSpanned cell
+      let text = draftElem.innerHTML; // get existing innerHTML from from the pre element of verse cell
+      let spelStart = text.search(/\S/); // find the first spel by finding first nonwhitespace
+      while (spelStart != -1) {
+        newText += text.substr(0, spelStart); // grab everything up to that point
+        text = text.substr(spelStart); // put the rest in text
+        let spelEnd = text.search(/\s/); // find where whitespace starts again
+        if (spelEnd == -1) spelEnd = text.length; // text ends with nonwhitespace
+        // wrap the spel we've found in span tags
+        newText += `<span>` + text.substr(0, spelEnd) + `</span>`; // add this to newText
+        text = text.substr(spelEnd); // put the rest in text
+        spelStart = text.search(/\S/); // find the next nonwhitespace (if any)
+      }
+      return `<div class="set">${newText}</div>`; // wrap in pre tags of same class
+    }
+  </script>
+  <script id="2154" type="text/markdown">
+    #### *Default linear* `scores` *produced by* `timeToRead()`
+  </script>
+  <script id="5741" type="application/vnd.observable.javascript" pinned="">
+    scoresDefaultTTR = {
+      let scores = [];
+      let spelIdx = 0;
+      let paraCells = config.get("paraCells");
+      for (let pIdx = 0; pIdx < paraCells.length; pIdx++) {
+        let score = [];
+        let paraElem = paraCells[pIdx];
+        let paraSpels = parasConfig[config.get("paraNames")[pIdx]];
+        let pauses = [],
+          pausesIdx = 0;
+        let textToProcess = paraElem.innerText,
+          s = textToProcess.search(/\S/);
+        while (s != -1) {
+          let spaces = textToProcess.substr(0, s);
+          textToProcess = textToProcess.substr(s);
+          let l = textToProcess.search(/\s/);
+          if (l == -1) l = textToProcess.length;
+          let word = textToProcess.substr(0, l);
+          pauses.push(timeToRead(word, pausesIdx++, spaces, pauses));
+          textToProcess = textToProcess.substr(l);
+          s = textToProcess.search(/\S/);
+        }
+        pauses.forEach((p, idx) => score.push({ id: paraSpels[idx].id, pause: p }));
+        scores.push(score);
+      }
+      return scores;
+    }
+  </script>
+  <script id="5749" type="application/vnd.observable.javascript" pinned="">
+    timeToRead = (word, idx, spaces, pauses, factor = 1) => {
+      let hundreths = 30;
+      let vowelsOrPunc = word.match(/[aeiouy,:;\.\?]/gi);
+      if (vowelsOrPunc) hundreths += (vowelsOrPunc.length * 15) / factor;
+      if (idx - 1 > -1) {
+        pauses[idx - 1] += (spaces.length * 7.5) / factor;
+        let crs = spaces.match(/[\n\r]/gi);
+        if (crs) pauses[idx - 1] += (crs.length * 100) / factor;
+      }
+      return hundreths;
+    }
+  </script>
+  <script id="6169" type="application/vnd.observable.javascript" pinned="">
+    scoresFromAlignment = (alignmentJSON) => {
+      let startingPara = 0; // Could be EDITed
+      let numParas = paras.length;
+      // let alignmentJSON = await FileAttachment("reading@1.m4a.json").json();
+      let scores = [];
+      let firstSpelId = paras[startingPara][0];
+      // console.log(firstSpelId);
+      // console.log(firstSpelId, firstSpelId.match(/\d+/)[0]); // DEBUG
+      let spelNdx = parseInt(firstSpelId.match(/\d+/)[0]);
+      for (let i = 0; i < numParas; i++) {
+        let a = alignedSpels(
+          alignmentJSON[startingPara + i],
+          startingPara + i,
+          spelNdx
+        );
+        spelNdx += a.length;
+        // >>>  would add autofade here:
+        // a.unshift({
+        //   id: "AUTOFADE",
+        //   pause: config.fadeWords
+        // });
+        // <<<
+        scores.push(a);
+      }
+      return scores;
+    }
+  </script>
+  <script id="6173" type="application/vnd.observable.javascript" pinned="">
+    function alignedSpels(alignmentJSON, _paraNum = 0, spelNdx = 0) {
+      // build aligned spels
+      // console.log("entered alignedSpels()"); // DEBUG
+      let aSpels = [];
+      alignmentJSON.forEach((alignedWord, idx) => {
+        // get length of time taken to pronounce word:
+        let p = alignedWord.end - alignedWord.start;
+        // if we are not at the last word of the segment
+        if (idx < alignmentJSON.length - 1) {
+          // add the difference between start of next word and end of this one
+          p = p + (alignmentJSON[idx + 1].start - alignedWord.end);
+        }
+        p = Math.round(p * 100); // convert to hundreths
+        // in this project all spell id's are unique because serial numbers are added
+        let spelId = alignedWord.word.trim() + "_" + spelNdx++;
+        if (!spels.has(spelId))
+          console.log(`alignment problem at: ${spelId} in para: ${_paraNum}`);
+        aSpels.push({
+          id: spelId,
+          pause: p
+        }); // spels[idx]
+      });
+      return aSpels;
+    }
+  </script>
+  <script id="5937" type="text/html">
+    <div class="set">SAMPLE
+
+    Cobbett’s View
+                       broad vista north
+    Thomas’  Stone
+                       high   vista south</div>
+  </script>
+  <script id="16" type="text/html" pinned="">
+    <h4>CSS</h4>
+    <style>
+
+    /*   @font-face {
+        font-family: 'Source Serif 4';
+        src: local('Source Serif 4')
+      }
+    */
+
+      .set {
+        white-space: wrap;
+        padding-right:20vw;
+        position: relative;
+        font-family: "Source Serif 4", "Source Serif Pro", serif;
+        font-size: 2vw;
+        font-variant-ligatures: no-common-ligatures;
+        font-optical-sizing: auto;
+        font-style: normal;
+        font-variation-settings:
+          "wght" 300,
+          "wdth" 100,
+          "YTLC" 500;
+        line-height: 1.2;
+        color: black;
+      }
+
+      .spel {
+        position: absolute;
+        opacity: 0;
+        transition: all 1.5s ease-in-out; /* vendorless fallback */
+        -o-transition: all 1.5s ease-in-out; /* opera */
+        -ms-transition: all 1.5s ease-in-out; /* IE 10 */
+        -moz-transition: all 1.5s ease-in-out; /* Firefox */
+        -webkit-transition: all 1.5s ease-in-out; /*safari and chrome */
+      }
+
+      .spel.visible {
+        opacity: 1;
+      }
+
+      #display {
+        position: relative;
+        background-color: floralwhite;
+        color: darkslategray;
+        cursor: none;
+        overflow: hidden;
+        width: 60vw; /* This value should be calculated manually for notebooks that display */
+        height: 50vw; /* This value should be calculated manually for notebooks that display */
+      }
+
+    </style>
+  </script>
+  <script id="2088" type="text/markdown">
+    #### General utilities
+  </script>
+  <script id="1051" type="application/vnd.observable.javascript">
+    // converts pixel measurements to the more flexible vw (viewport width) measurement of css
+    pxToVw = (px) => px * (100 / vWidth) // document.documentElement.clientWidth
+  </script>
+  <script id="5514" type="application/vnd.observable.javascript" pinned="">
+    vWidth = Math.max(
+      document.documentElement.clientWidth || 0,
+      window.innerWidth || 0
+    )
+  </script>
+  <script id="1680" type="application/vnd.observable.javascript">
+    // shuffles an array
+    shuffle = (src) => {
+      let a = [...src];
+      let i = a.length;
+      while (--i > 0) {
+        let j = ~~(Math.random() * (i + 1)); // ~~ is a common optimization for Math.floor
+        let t = a[j];
+        a[j] = a[i];
+        a[i] = t;
+      }
+      return a;
+    }
+  </script>
+  <script id="3479" type="application/vnd.observable.javascript" pinned="">
+    randInt = (maxPlusOne) => (maxPlusOne * Math.random()) | 0
+  </script>
+  <script id="3838" type="application/vnd.observable.javascript">
+    import { StrictObj } from "@shadoof/utils"
+  </script>
+  <script id="4309" type="text/markdown">
+    ---
+    ### Spanned Drafts
+  </script>
+  <script id="4219" type="application/vnd.observable.javascript" pinned="">
+    spanned1 = html`${await addSpansTo(draft1)}`
+  </script>
+  <script id="4388" type="application/vnd.observable.javascript" pinned="">
+    spanned2 = html`${await addSpansTo(draft2)}`
+  </script>
+  <script id="5861" type="application/vnd.observable.javascript" pinned="">
+    spanned3 = html`${await addSpansTo(draft3)}`
+  </script>
+  <script id="6021" type="application/vnd.observable.javascript" pinned="">
+    spanned4 = html`${await addSpansTo(draft4)}`
+  </script>
+</notebook>
