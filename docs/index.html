@@ -5,7 +5,7 @@
     # Readers Codec
   </script>
   <script id="36" type="text/x-typescript" pinned="">
-    spelNeighborhood("nourishing_36")
+    spelNeighborhood("clogged_3")
   </script>
   <script id="2" type="module" pinned="">
     let newHTML = Array.from(spels.values())
@@ -107,20 +107,20 @@
       const centerSpel = spels.get(spelId);
       const centerElem = document.getElementById(spelId);
       const lineHeightPx = parseFloat(window.getComputedStyle(centerElem.parentElement).lineHeight);
-      const lineHeight = px2vw(lineHeightPx);
-      return lineHeight; // DEBUG
+      const lineHeight = pxToVw(lineHeightPx);
+      // return lineHeight; // DEBUG
 
       // [4] = undefined (center)
       neighborhood[4] = undefined;
 
       // Helper function to find spels on the same line (within vertical threshold)
-      const sameLine = (spel, threshold = 0.5) =>
-        spelsArray.filter(s => Math.abs(s.topvw - spel.topvw) <= threshold && s.id !== spel.id);
+      const getLine = (spelTopvw, spelIdToExclude, threshold = 0.5) =>
+        spelsArray.filter(s => Math.abs(s.topvw - spelTopvw) <= threshold && (s.id !== spelIdToExclude));
 
-      // return sameLine(centerSpel); // DEBUG
+      // return getLine(centerSpel.topvw); // DEBUG
 
       // [3] = preceding spel on same line (immediately to the left)
-      const leftSpels = sameLine(centerSpel).filter(s => s.leftvw < centerSpel.leftvw);
+      const leftSpels = getLine(centerSpel.topvw,centerSpel.id).filter(s => s.leftvw < centerSpel.leftvw);
       if (leftSpels.length > 0) {
         neighborhood[3] = leftSpels.reduce((closest, s) =>
           s.leftvw > closest.leftvw ? s : closest
@@ -128,7 +128,7 @@
       }
 
       // [5] = next spel on same line (immediately to the right)
-      const rightSpels = sameLine(centerSpel).filter(s => s.leftvw > centerSpel.leftvw);
+      const rightSpels = getLine(centerSpel.topvw,centerSpel.id).filter(s => s.leftvw > centerSpel.leftvw);
       if (rightSpels.length > 0) {
         neighborhood[5] = rightSpels.reduce((closest, s) =>
           s.leftvw < closest.leftvw ? s : closest
@@ -139,9 +139,9 @@
       const findOverlapping = (targetSpel, lineSpels, slop = 0) => {
         return lineSpels.filter(s => {
           const centerLeft = targetSpel.leftvw;
-          const centerRight = targetSpel.leftvw + px2vw(centerElem.offsetWidth);
+          const centerRight = targetSpel.leftvw + pxToVw(centerElem.offsetWidth);
           const testLeft = s.leftvw;
-          const testRight = s.leftvw + px2vw(document.getElementById(s.id).offsetWidth);
+          const testRight = s.leftvw + pxToVw(document.getElementById(s.id).offsetWidth);
 
           return (centerLeft + slop > testLeft && centerLeft - slop < testRight) ||
                  (testLeft + slop > centerLeft && testLeft - slop < centerRight);
@@ -149,7 +149,7 @@
       };
 
       // Find spels above (line above has lower topvw)
-      const aboveSpels = spelsArray.filter(s => s.topvw < centerSpel.topvw - 1);
+      const aboveSpels = getLine(centerSpel.topvw - lineHeight);
 
       // Find rightmost overlapping spel above
       const overlappingAbove = findOverlapping(centerSpel, aboveSpels);
@@ -160,17 +160,17 @@
         neighborhood[2] = rightmost.id;
 
         // [1] = spel to the left of [2] on the same line
-        const sameLine2 = spelsArray.filter(s =>
+        const getLine2 = spelsArray.filter(s =>
           Math.abs(s.topvw - rightmost.topvw) <= 0.5 && s.id !== rightmost.id
         );
-        const leftOf2 = sameLine2.filter(s => s.leftvw < rightmost.leftvw);
+        const leftOf2 = getLine2.filter(s => s.leftvw < rightmost.leftvw);
         if (leftOf2.length > 0) {
           neighborhood[1] = leftOf2.reduce((closest, s) =>
             s.leftvw > closest.leftvw ? s : closest
           ).id;
 
           // [0] = spel to the left of [1]
-          const leftOf1 = sameLine2.filter(s =>
+          const leftOf1 = getLine2.filter(s =>
             s.leftvw < neighborhood[1] &&
             neighborhood[1] &&
             spels.has(neighborhood[1])
@@ -184,7 +184,7 @@
       }
 
       // Find spels below (line below has higher topvw)
-      const belowSpels = spelsArray.filter(s => s.topvw > centerSpel.topvw + 1);
+      const belowSpels = getLine(centerSpel.topvw + lineHeight);
 
       // Find rightmost overlapping spel below
       const overlappingBelow = findOverlapping(centerSpel, belowSpels);
@@ -195,17 +195,17 @@
         neighborhood[8] = rightmost.id;
 
         // [7] = spel to the left of [8] on the same line
-        const sameLine8 = spelsArray.filter(s =>
+        const getLine8 = spelsArray.filter(s =>
           Math.abs(s.topvw - rightmost.topvw) <= 0.5 && s.id !== rightmost.id
         );
-        const leftOf8 = sameLine8.filter(s => s.leftvw < rightmost.leftvw);
+        const leftOf8 = getLine8.filter(s => s.leftvw < rightmost.leftvw);
         if (leftOf8.length > 0) {
           neighborhood[7] = leftOf8.reduce((closest, s) =>
             s.leftvw > closest.leftvw ? s : closest
           ).id;
 
           // [6] = spel to the left of [7]
-          const leftOf7 = sameLine8.filter(s =>
+          const leftOf7 = getLine8.filter(s =>
             s.leftvw < neighborhood[7] &&
             neighborhood[7] &&
             spels.has(neighborhood[7])
@@ -220,9 +220,6 @@
 
       return neighborhood;
     }
-  </script>
-  <script id="46" type="module" pinned="">
-    const px2vw = (px) => (px / document.documentElement.clientWidth) * 100
   </script>
   <script id="32" type="application/vnd.observable.javascript" pinned="">
     mapParaSpels = (spannedCells, paraNames) => {
@@ -409,6 +406,7 @@
       .spel {
         position: absolute;
         opacity: 1;
+        background-color: navajowhite;
         transition: all 1.5s ease-in-out;
         -o-transition: all 1.5s ease-in-out;
         -ms-transition: all 1.5s ease-in-out;
@@ -422,7 +420,7 @@
 
       #display {
         position: relative;
-        background-color: floralwhite;
+        background-color: antiquewhite;
         color: darkslategray;
         /* cursor: none; */
         height: 352vw;
@@ -433,7 +431,7 @@
   <script id="24" type="text/markdown">
     #### General utilities
   </script>
-  <script id="25" type="application/vnd.observable.javascript">
+  <script id="25" type="application/vnd.observable.javascript" pinned="">
     // converts pixel measurements to the more flexible vw (viewport width) measurement of css
     pxToVw = (px) => px * (100 / vWidth) // document.documentElement.clientWidth
   </script>
