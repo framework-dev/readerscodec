@@ -4,31 +4,45 @@
   <script id="1" type="text/markdown">
     # Readers Codec
   </script>
-  <script id="6195" type="module" pinned="">
-    const theimage = fetch("theimage.txt")
+  <script id="36" type="text/x-typescript" pinned="">
+    spelNeighborhood("nourishing_36")
+  </script>
+  <script id="2" type="module" pinned="">
+    let newHTML = Array.from(spels.values())
+      .map((spel) => spel.html)
+      .join("");
+    let displayElem = htl.html`<div id="display" class="set"></div>`;
+    displayElem.innerHTML = newHTML;
+    display(displayElem);
+  </script>
+  <script id="3" type="module" pinned="">
+    const theimage = fetch("data/theImage.txt")
       .then((response) => response.ok ? response.text() : Promise.reject(response.status));
       // .then(display);
   </script>
-  <script id="582" type="module" pinned="">
-    const draft = htl.html`<div class="set">${theimage}</div>`;
-    display(draft)
+  <script id="4" type="module" pinned="">
+    const draft = htl.html`<div class="set">${theimage}</div>`; // this element is not display but is used by the spanned element below
   </script>
-  <script id="6059" type="module" pinned="">
+  <script id="5" type="module" pinned="">
     paras
   </script>
-  <script id="6141" type="application/vnd.observable.javascript" pinned="">
+  <script id="6" type="application/vnd.observable.javascript" pinned="">
     spels
   </script>
-  <script id="6143" type="application/vnd.observable.javascript" pinned="">
+  <script id="37" type="module" pinned="">
+    const spelsArray = Array.from(spels.entries()).map(([id, spel]) => ({ id, ...spel }));
+    display(spelsArray)
+  </script>
+  <script id="7" type="application/vnd.observable.javascript" pinned="">
     scores = scoresDefaultTTR; // scoresFromAlignment([maplebridgepoem]) // scoresDefaultTTR // change this to what is actually required before Download JSON
   </script>
-  <script id="5729" type="application/vnd.observable.javascript" pinned="">
-    parasConfig = ({ draft2: [] }) // , draft2: [], draft3: [], draft4: [] })
+  <script id="8" type="application/vnd.observable.javascript" pinned="">
+    parasConfig = ({ draft: [] }) // , draft2: [], draft3: [], draft4: [] })
     // Edit and construct this literal with properties that match
     // the cell names of paragraphs.
     // Other configuration is done in the config StrictObj:
   </script>
-  <script id="3254" type="application/vnd.observable.javascript" pinned="">
+  <script id="9" type="application/vnd.observable.javascript" pinned="">
     config = {
       let obj = {
         paraNames: Object.keys(parasConfig),
@@ -38,22 +52,179 @@
       return new StrictObj(obj);
     }
   </script>
-  <script id="2861" type="application/vnd.observable.javascript" pinned="">
+  <script id="10" type="application/vnd.observable.javascript" pinned="">
     spels = mapParaSpels(config.get("spannedCells"), config.get("paraNames"))
   </script>
-  <script id="5996" type="application/vnd.observable.javascript" pinned="">
+  <script id="44" type="module" pinned="">
+    //   const sameLine = (spel, threshold = 0.5) =>
+    //     allSpels.filter(s => Math.abs(s.topvw - spel.topvw) <= threshold && s.id !== spel.id);
+    // display(sameLine(spels.get("tongue_1")));
+    // display(spels.get("tongue_1"));
+  </script>
+  <script id="45" type="text/x-typescript" pinned="">
+    const spelsIterator = spels.entries()
+    let sameLineFromMap = (spel, threshold = 0.5) =>
+      spelsIterator.filter(s => Math.abs(s.topvw - spel.topvw) <= threshold && s.id !== spel.id);
+    display(sameLineFromMap(spels.get("tongue_1")));
+    display(spelsIterator.next());
+    display(spelsIterator.next());
+    display(spelsIterator.next());
+  </script>
+  <script id="11" type="application/vnd.observable.javascript" pinned="">
     paras = {
       let pArray = Array.from(Object.values(parasConfig));
       pArray = pArray.map((a) => a.map((i) => i.id));
       return pArray;
     }
   </script>
-  <script id="5522" type="application/vnd.observable.javascript" pinned="">
+  <script id="12" type="application/vnd.observable.javascript" pinned="">
     spanString = Array.from(spels.values())
       .map((spel) => spel.html)
       .join("")
   </script>
-  <script id="4401" type="application/vnd.observable.javascript" pinned="">
+  <script id="14" type="module" pinned="">
+    function spelNeighborhood(spelId) {
+    /**
+     * Returns the 9-element neighborhood for a spel id:
+     * [0] [1] [2]
+     * [3] [4] [5]  where [4] is the center (undefined)
+     * [6] [7] [8]
+     *
+     * [3] = preceding spel, [5] = next spel
+     * [1] = spel above, [7] = spel below
+     * [2] = spel above-right (overlapping on line above)
+     * [8] = spel below-right (overlapping on line below)
+     * [0] = spel above-left, [6] = spel below-left
+     */
+      const neighborhood = new Array(9).fill(undefined);
+
+      // Find the spel and its position
+      if (!spels.has(spelId)) {
+        console.warn(`Spel id "${spelId}" not found`);
+        return neighborhood;
+      }
+
+      const centerSpel = spels.get(spelId);
+      const centerElem = document.getElementById(spelId);
+      const lineHeightPx = parseFloat(window.getComputedStyle(centerElem.parentElement).lineHeight);
+      const lineHeight = px2vw(lineHeightPx);
+      return lineHeight; // DEBUG
+
+      // [4] = undefined (center)
+      neighborhood[4] = undefined;
+
+      // Helper function to find spels on the same line (within vertical threshold)
+      const sameLine = (spel, threshold = 0.5) =>
+        spelsArray.filter(s => Math.abs(s.topvw - spel.topvw) <= threshold && s.id !== spel.id);
+
+      // return sameLine(centerSpel); // DEBUG
+
+      // [3] = preceding spel on same line (immediately to the left)
+      const leftSpels = sameLine(centerSpel).filter(s => s.leftvw < centerSpel.leftvw);
+      if (leftSpels.length > 0) {
+        neighborhood[3] = leftSpels.reduce((closest, s) =>
+          s.leftvw > closest.leftvw ? s : closest
+        ).id;
+      }
+
+      // [5] = next spel on same line (immediately to the right)
+      const rightSpels = sameLine(centerSpel).filter(s => s.leftvw > centerSpel.leftvw);
+      if (rightSpels.length > 0) {
+        neighborhood[5] = rightSpels.reduce((closest, s) =>
+          s.leftvw < closest.leftvw ? s : closest
+        ).id;
+      }
+
+      // Helper function to find overlapping spels on a vertical line
+      const findOverlapping = (targetSpel, lineSpels, slop = 0) => {
+        return lineSpels.filter(s => {
+          const centerLeft = targetSpel.leftvw;
+          const centerRight = targetSpel.leftvw + px2vw(centerElem.offsetWidth);
+          const testLeft = s.leftvw;
+          const testRight = s.leftvw + px2vw(document.getElementById(s.id).offsetWidth);
+
+          return (centerLeft + slop > testLeft && centerLeft - slop < testRight) ||
+                 (testLeft + slop > centerLeft && testLeft - slop < centerRight);
+        });
+      };
+
+      // Find spels above (line above has lower topvw)
+      const aboveSpels = spelsArray.filter(s => s.topvw < centerSpel.topvw - 1);
+
+      // Find rightmost overlapping spel above
+      const overlappingAbove = findOverlapping(centerSpel, aboveSpels);
+      if (overlappingAbove.length > 0) {
+        const rightmost = overlappingAbove.reduce((max, s) =>
+          s.leftvw > max.leftvw ? s : max
+        );
+        neighborhood[2] = rightmost.id;
+
+        // [1] = spel to the left of [2] on the same line
+        const sameLine2 = spelsArray.filter(s =>
+          Math.abs(s.topvw - rightmost.topvw) <= 0.5 && s.id !== rightmost.id
+        );
+        const leftOf2 = sameLine2.filter(s => s.leftvw < rightmost.leftvw);
+        if (leftOf2.length > 0) {
+          neighborhood[1] = leftOf2.reduce((closest, s) =>
+            s.leftvw > closest.leftvw ? s : closest
+          ).id;
+
+          // [0] = spel to the left of [1]
+          const leftOf1 = sameLine2.filter(s =>
+            s.leftvw < neighborhood[1] &&
+            neighborhood[1] &&
+            spels.has(neighborhood[1])
+          );
+          if (leftOf1.length > 0) {
+            neighborhood[0] = leftOf1.reduce((closest, s) =>
+              s.leftvw > closest.leftvw ? s : closest
+            ).id;
+          }
+        }
+      }
+
+      // Find spels below (line below has higher topvw)
+      const belowSpels = spelsArray.filter(s => s.topvw > centerSpel.topvw + 1);
+
+      // Find rightmost overlapping spel below
+      const overlappingBelow = findOverlapping(centerSpel, belowSpels);
+      if (overlappingBelow.length > 0) {
+        const rightmost = overlappingBelow.reduce((max, s) =>
+          s.leftvw > max.leftvw ? s : max
+        );
+        neighborhood[8] = rightmost.id;
+
+        // [7] = spel to the left of [8] on the same line
+        const sameLine8 = spelsArray.filter(s =>
+          Math.abs(s.topvw - rightmost.topvw) <= 0.5 && s.id !== rightmost.id
+        );
+        const leftOf8 = sameLine8.filter(s => s.leftvw < rightmost.leftvw);
+        if (leftOf8.length > 0) {
+          neighborhood[7] = leftOf8.reduce((closest, s) =>
+            s.leftvw > closest.leftvw ? s : closest
+          ).id;
+
+          // [6] = spel to the left of [7]
+          const leftOf7 = sameLine8.filter(s =>
+            s.leftvw < neighborhood[7] &&
+            neighborhood[7] &&
+            spels.has(neighborhood[7])
+          );
+          if (leftOf7.length > 0) {
+            neighborhood[6] = leftOf7.reduce((closest, s) =>
+              s.leftvw > closest.leftvw ? s : closest
+            ).id;
+          }
+        }
+      }
+
+      return neighborhood;
+    }
+  </script>
+  <script id="46" type="module" pinned="">
+    const px2vw = (px) => (px / document.documentElement.clientWidth) * 100
+  </script>
+  <script id="32" type="application/vnd.observable.javascript" pinned="">
     mapParaSpels = (spannedCells, paraNames) => {
       let spels = new Map();
       for (const [idx, spannedCell] of spannedCells.entries()) {
@@ -61,6 +232,7 @@
         let spelArray = getSpelArray(spannedCell, spels.size);
         spelArray.forEach((spel) => {
           spels.set(spel.id, {
+            id: spel.id,
             string: spel.string,
             leftvw: spel.leftvw,
             topvw: spel.topvw,
@@ -73,7 +245,7 @@
       return spels;
     }
   </script>
-  <script id="844" type="application/vnd.observable.javascript" pinned="">
+  <script id="15" type="application/vnd.observable.javascript" pinned="">
     getSpelArray = (spannedElem, size = 0) => {
       // builds the spels array of spel objects and returns styled spans for display
       let spelArray = [];
@@ -90,7 +262,7 @@
       return spelArray;
     }
   </script>
-  <script id="974" type="application/vnd.observable.javascript" pinned="">
+  <script id="16" type="application/vnd.observable.javascript" pinned="">
     addSpansTo = (draftElem) => {
       let newText = ``; // this will hold html for the new draftSpanned cell
       let text = draftElem.innerHTML; // get existing innerHTML from from the pre element of verse cell
@@ -108,10 +280,10 @@
       return newText;
     }
   </script>
-  <script id="2154" type="text/markdown">
+  <script id="17" type="text/markdown">
     #### *Default linear* `scores` *produced by* `timeToRead()`
   </script>
-  <script id="5741" type="application/vnd.observable.javascript" pinned="">
+  <script id="18" type="application/vnd.observable.javascript" pinned="">
     scoresDefaultTTR = {
       let scores = [];
       let spelIdx = 0;
@@ -140,7 +312,7 @@
       return scores;
     }
   </script>
-  <script id="5749" type="application/vnd.observable.javascript" pinned="">
+  <script id="19" type="application/vnd.observable.javascript" pinned="">
     timeToRead = (word, idx, spaces, pauses, factor = 1) => {
       let hundreths = 30;
       let vowelsOrPunc = word.match(/[aeiouy,:;\.\?]/gi);
@@ -153,7 +325,7 @@
       return hundreths;
     }
   </script>
-  <script id="6169" type="application/vnd.observable.javascript" pinned="">
+  <script id="20" type="application/vnd.observable.javascript" pinned="">
     scoresFromAlignment = (alignmentJSON) => {
       let startingPara = 0; // Could be EDITed
       let numParas = paras.length;
@@ -181,7 +353,7 @@
       return scores;
     }
   </script>
-  <script id="6173" type="application/vnd.observable.javascript" pinned="">
+  <script id="21" type="application/vnd.observable.javascript" pinned="">
     function alignedSpels(alignmentJSON, _paraNum = 0, spelNdx = 0) {
       // build aligned spels
       // console.log("entered alignedSpels()"); // DEBUG
@@ -207,16 +379,20 @@
       return aSpels;
     }
   </script>
-  <script id="16" type="text/html" pinned="">
+  <script id="22" type="module" pinned="">
+    const lastSpel = Array.from(spels.values()).pop();
+    display(`${lastSpel.string}: ${Math.ceil(lastSpel.topvw + 3)}`);
+  </script>
+  <script id="23" type="text/html" pinned="">
     <h4>CSS</h4>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
       .set {
         white-space: pre-wrap;
         width: 60vw;
         position: relative;
-        font-family: "Source Serif 4", "Source Serif Pro", serif;
+        font-family: "Roboto Mono", "Andale Mono", sans-serif;
         font-size: 2vw;
         font-variant-ligatures: no-common-ligatures;
         font-optical-sizing: auto;
@@ -232,7 +408,7 @@
 
       .spel {
         position: absolute;
-        opacity: 0;
+        opacity: 1;
         transition: all 1.5s ease-in-out;
         -o-transition: all 1.5s ease-in-out;
         -ms-transition: all 1.5s ease-in-out;
@@ -248,24 +424,26 @@
         position: relative;
         background-color: floralwhite;
         color: darkslategray;
-        cursor: none;
+        /* cursor: none; */
+        height: 352vw;
+        overflow: hidden;
       }
     </style>
   </script>
-  <script id="2088" type="text/markdown">
+  <script id="24" type="text/markdown">
     #### General utilities
   </script>
-  <script id="1051" type="application/vnd.observable.javascript">
+  <script id="25" type="application/vnd.observable.javascript">
     // converts pixel measurements to the more flexible vw (viewport width) measurement of css
     pxToVw = (px) => px * (100 / vWidth) // document.documentElement.clientWidth
   </script>
-  <script id="5514" type="application/vnd.observable.javascript" pinned="">
+  <script id="26" type="application/vnd.observable.javascript" pinned="">
     vWidth = Math.max(
       document.documentElement.clientWidth || 0,
       window.innerWidth || 0
     )
   </script>
-  <script id="1680" type="application/vnd.observable.javascript">
+  <script id="27" type="application/vnd.observable.javascript">
     // shuffles an array
     shuffle = (src) => {
       let a = [...src];
@@ -279,19 +457,27 @@
       return a;
     }
   </script>
-  <script id="3479" type="application/vnd.observable.javascript" pinned="">
+  <script id="28" type="application/vnd.observable.javascript" pinned="">
     randInt = (maxPlusOne) => (maxPlusOne * Math.random()) | 0
   </script>
-  <script id="3838" type="application/vnd.observable.javascript">
+  <script id="29" type="application/vnd.observable.javascript">
     import { StrictObj } from "@shadoof/utils"
   </script>
-  <script id="4309" type="text/markdown">
+  <script id="30" type="text/markdown">
     ---
     ### Spanned Drafts
   </script>
-  <script id="6200" type="module" pinned="">
+  <script id="31" type="module" pinned="">
     const spanned = htl.html`<div class="set"></div>`;
     spanned.innerHTML = addSpansTo(draft);
     display(spanned);
+  </script>
+  <script id="38" type="module" pinned="">
+    // Import specific RiTa functions
+    import { RiTa } from "npm:rita";
+    const { phones } = RiTa;
+    // Example usage
+    display("Phonemes for 'hello':");
+    display(phones("hello"));
   </script>
 </notebook>
