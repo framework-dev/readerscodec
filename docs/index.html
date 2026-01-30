@@ -17,8 +17,8 @@
   </script>
   <script id="38" type="module" pinned="">
     let currentSpelIndex = 0;
-    let animationFrame;
     let intervalId;
+    let isAnimating = false;
 
     function cycleSpels() {
       const spelIds = Array.from(spels.keys());
@@ -55,21 +55,41 @@
       currentSpelIndex = (currentSpelIndex + 1) % spelIds.length;
     }
 
-    // Wait a bit for the DOM to be ready, then start cycling
-    setTimeout(() => {
-      intervalId = setInterval(cycleSpels, 1000);
-    }, 100);
+    function toggleAnimation() {
+      if (!isAnimating) {
+        // Start animation
+        isAnimating = true;
+        intervalId = setInterval(cycleSpels, 1000);
+        toggleButton.textContent = 'Stop Animation';
+      } else {
+        // Stop animation
+        isAnimating = false;
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+        // Reset all backgrounds
+        document.querySelectorAll('.spel').forEach(spel => {
+          spel.style.backgroundColor = 'navajowhite';
+        });
+        toggleButton.textContent = 'Start Animation';
+      }
+    }
+
+    // Create and display the toggle button
+    const toggleButton = htl.html`<button onclick=${toggleAnimation}>Start Animation</button>`;
+    display(toggleButton);
 
     // Stop animation when cell is invalidated
     invalidation.then(() => {
-      if (intervalId) clearInterval(intervalId);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
       // Reset all backgrounds
       document.querySelectorAll('.spel').forEach(spel => {
         spel.style.backgroundColor = 'navajowhite';
       });
     });
-
-    display("Cycling through spels with neighborhood highlighting...");
   </script>
   <script id="4" type="module" pinned="">
     const theimage = fetch("data/theImage.txt")
@@ -191,6 +211,32 @@
         return (left1 - slop <= right2) && (right1 + slop >= left2);
       };
 
+      // Helper function to find the first and last line positions
+      const getFirstLastLinePositions = () => {
+        const allTopPositions = spelsArray.map(s => s.topvw).sort((a, b) => a - b);
+        const uniqueTopPositions = [...new Set(allTopPositions)];
+        return {
+          firstLine: uniqueTopPositions[0],
+          lastLine: uniqueTopPositions[uniqueTopPositions.length - 1]
+        };
+      };
+
+      // Helper function to find next non-blank line below given position
+      const findNextNonBlankLine = (currentTopvw) => {
+        const allTopPositions = spelsArray.map(s => s.topvw).sort((a, b) => a - b);
+        const uniqueTopPositions = [...new Set(allTopPositions)];
+
+        for (let i = 0; i < uniqueTopPositions.length; i++) {
+          if (uniqueTopPositions[i] > currentTopvw) {
+            const spelsOnLine = getSpelsOnLine(uniqueTopPositions[i]);
+            if (spelsOnLine.length > 0) {
+              return uniqueTopPositions[i];
+            }
+          }
+        }
+        return null;
+      };
+
       // Get spels on the same line as center
       const centerLineSpels = getSpelsOnLine(centerSpel.topvw).filter(s => s.id !== centerSpel.id);
 
@@ -246,7 +292,23 @@
       }
 
       // [7] = spel most immediately below center spel on line below
-      const belowLineSpels = getSpelsOnLine(centerSpel.topvw + lineHeight);
+      const { firstLine, lastLine } = getFirstLastLinePositions();
+      let belowLineSpels = getSpelsOnLine(centerSpel.topvw + lineHeight);
+
+      // If no spels found on immediate line below
+      if (belowLineSpels.length === 0) {
+        if (Math.abs(centerSpel.topvw - lastLine) <= 0.5) {
+          // Center spel is on the last line, wrap to first line
+          belowLineSpels = getSpelsOnLine(firstLine);
+        } else {
+          // Center spel is not on last line, find next non-blank line
+          const nextLineTopvw = findNextNonBlankLine(centerSpel.topvw);
+          if (nextLineTopvw !== null) {
+            belowLineSpels = getSpelsOnLine(nextLineTopvw);
+          }
+        }
+      }
+
       if (belowLineSpels.length > 0) {
         const overlappingBelow = belowLineSpels.filter(s => spelsOverlap(centerSpel, s));
         if (overlappingBelow.length > 0) {
