@@ -5,7 +5,7 @@
     # Readers Codec
   </script>
   <script id="2" type="module" pinned="">
-    spelNeighborhood("it_19")
+    spelNeighborhood("one_11")
   </script>
   <script id="3" type="module" pinned="">
     let newHTML = Array.from(spels.values())
@@ -14,62 +14,6 @@
     let displayElem = htl.html`<div id="display" class="set"></div>`;
     displayElem.innerHTML = newHTML;
     display(displayElem);
-  </script>
-  <script id="38" type="module" pinned="">
-    let currentSpelIndex = 0;
-    let animationFrame;
-    let intervalId;
-
-    function cycleSpels() {
-      const spelIds = Array.from(spels.keys());
-
-      if (spelIds.length === 0) return;
-
-      // Clear previous highlights
-      document.querySelectorAll('.spel').forEach(spel => {
-        spel.style.backgroundColor = 'navajowhite';
-      });
-
-      // Get current spel
-      const currentSpelId = spelIds[currentSpelIndex];
-      const currentSpelElement = document.getElementById(currentSpelId);
-
-      if (currentSpelElement) {
-        // Highlight center spel in yellow
-        currentSpelElement.style.backgroundColor = 'yellow';
-
-        // Get neighborhood and highlight in pink
-        const neighborhood = spelNeighborhood(currentSpelId);
-        console.log(neighborhood);
-        neighborhood.forEach((neighborSpel, index) => {
-          if (neighborSpel && index !== 4) { // Skip center (index 4)
-            const neighborElement = document.getElementById(neighborSpel);
-            if (neighborElement) {
-              neighborElement.style.backgroundColor = 'pink';
-            }
-          }
-        });
-      }
-
-      // Move to next spel
-      currentSpelIndex = (currentSpelIndex + 1) % spelIds.length;
-    }
-
-    // Wait a bit for the DOM to be ready, then start cycling
-    setTimeout(() => {
-      intervalId = setInterval(cycleSpels, 1000);
-    }, 100);
-
-    // Stop animation when cell is invalidated
-    invalidation.then(() => {
-      if (intervalId) clearInterval(intervalId);
-      // Reset all backgrounds
-      document.querySelectorAll('.spel').forEach(spel => {
-        spel.style.backgroundColor = 'navajowhite';
-      });
-    });
-
-    display("Cycling through spels with neighborhood highlighting...");
   </script>
   <script id="4" type="module" pinned="">
     const theimage = fetch("data/theImage.txt")
@@ -171,153 +115,112 @@
       const centerElem = document.getElementById(spelId);
       const lineHeightPx = parseFloat(window.getComputedStyle(centerElem.parentElement).lineHeight);
       const lineHeight = pxToVw(lineHeightPx);
+      // return lineHeight; // DEBUG
 
       // [4] = undefined (center)
       neighborhood[4] = undefined;
 
       // Helper function to find spels on the same line (within vertical threshold)
-      const getSpelsOnLine = (spelTopvw, threshold = 0.5) =>
-        spelsArray.filter(s => Math.abs(s.topvw - spelTopvw) <= threshold);
+      const getLine = (spelTopvw, spelIdToExclude, threshold = 0.5) =>
+        spelsArray.filter(s => Math.abs(s.topvw - spelTopvw) <= threshold && (s.id !== spelIdToExclude));
 
-      // Helper function to check if two spels overlap horizontally
-      const spelsOverlap = (spel1, spel2, slop = 0) => {
-        const elem1 = document.getElementById(spel1.id);
-        const elem2 = document.getElementById(spel2.id);
-        const left1 = spel1.leftvw;
-        const right1 = spel1.leftvw + pxToVw(elem1.offsetWidth) + 1;
-        const left2 = spel2.leftvw;
-        const right2 = spel2.leftvw + pxToVw(elem2.offsetWidth) + 1;
+      // return getLine(centerSpel.topvw); // DEBUG
 
-        return (left1 - slop <= right2) && (right1 + slop >= left2);
-      };
-
-      // Get spels on the same line as center
-      const centerLineSpels = getSpelsOnLine(centerSpel.topvw).filter(s => s.id !== centerSpel.id);
-
-      // [3] = preceding spel (normally on same line, or last spel of line above if center is first)
-      const leftSpels = centerLineSpels.filter(s => s.leftvw < centerSpel.leftvw);
+      // [3] = preceding spel on same line (immediately to the left)
+      const leftSpels = getLine(centerSpel.topvw,centerSpel.id).filter(s => s.leftvw < centerSpel.leftvw);
       if (leftSpels.length > 0) {
-        // There are spels to the left on the same line
         neighborhood[3] = leftSpels.reduce((closest, s) =>
           s.leftvw > closest.leftvw ? s : closest
         ).id;
-      } else {
-        // Center spel is first on its line, so [3] is last spel of line above
-        const aboveLineSpels = getSpelsOnLine(centerSpel.topvw - lineHeight);
-        if (aboveLineSpels.length > 0) {
-          neighborhood[3] = aboveLineSpels.reduce((rightmost, s) =>
-            s.leftvw > rightmost.leftvw ? s : rightmost
-          ).id;
-        }
       }
 
-      // [5] = next spel (normally on same line, or first spel of line below if center is last)
-      const rightSpels = centerLineSpels.filter(s => s.leftvw > centerSpel.leftvw);
+      // [5] = next spel on same line (immediately to the right)
+      const rightSpels = getLine(centerSpel.topvw,centerSpel.id).filter(s => s.leftvw > centerSpel.leftvw);
       if (rightSpels.length > 0) {
-        // There are spels to the right on the same line
         neighborhood[5] = rightSpels.reduce((closest, s) =>
           s.leftvw < closest.leftvw ? s : closest
         ).id;
-      } else {
-        // Center spel is last on its line, so [5] is first spel of line below
-        const belowLineSpels = getSpelsOnLine(centerSpel.topvw + lineHeight);
-        if (belowLineSpels.length > 0) {
-          neighborhood[5] = belowLineSpels.reduce((leftmost, s) =>
-            s.leftvw < leftmost.leftvw ? s : leftmost
+      }
+
+      // Helper function to find overlapping spels on a vertical line
+      const findOverlapping = (targetSpel, lineSpels, slop = 0) => {
+        return lineSpels.filter(s => {
+          const centerLeft = targetSpel.leftvw;
+          const centerRight = targetSpel.leftvw + pxToVw(centerElem.offsetWidth);
+          const testLeft = s.leftvw;
+          const testRight = s.leftvw + pxToVw(document.getElementById(s.id).offsetWidth);
+
+          return (centerLeft + slop >= testLeft && centerLeft - slop <= testRight) ||
+                 (testLeft + slop >= centerLeft && testLeft - slop <= centerRight);
+        });
+      };
+
+      // Find spels above (line above has lower topvw)
+      const aboveSpels = getLine(centerSpel.topvw - lineHeight);
+
+      // Find rightmost overlapping spel above
+      const overlappingAbove = findOverlapping(centerSpel, aboveSpels);
+      if (overlappingAbove.length > 0) {
+        const rightmost = overlappingAbove.reduce((max, s) =>
+          s.leftvw > max.leftvw ? s : max
+        );
+        neighborhood[2] = rightmost.id;
+
+        // [1] = spel to the left of [2] on the same line
+        const getLine2 = spelsArray.filter(s =>
+          Math.abs(s.topvw - rightmost.topvw) <= 0.5 && s.id !== rightmost.id
+        );
+        const leftOf2 = getLine2.filter(s => s.leftvw < rightmost.leftvw);
+        if (leftOf2.length > 0) {
+          neighborhood[1] = leftOf2.reduce((closest, s) =>
+            s.leftvw > closest.leftvw ? s : closest
           ).id;
+
+          // [0] = spel to the left of [1]
+          const leftOf1 = getLine2.filter(s =>
+            s.leftvw < neighborhood[1] &&
+            neighborhood[1] &&
+            spels.has(neighborhood[1])
+          );
+          if (leftOf1.length > 0) {
+            neighborhood[0] = leftOf1.reduce((closest, s) =>
+              s.leftvw > closest.leftvw ? s : closest
+            ).id;
+          }
         }
       }
 
-      // [1] = spel most immediately above center spel on line above
-      const aboveLineSpels = getSpelsOnLine(centerSpel.topvw - lineHeight);
-      if (aboveLineSpels.length > 0) {
-        const overlappingAbove = aboveLineSpels.filter(s => spelsOverlap(centerSpel, s));
-        if (overlappingAbove.length > 0) {
-          // Find the one with center closest to center spel's center
-          const centerSpelCenter = centerSpel.leftvw + pxToVw(centerElem.offsetWidth) / 2;
-          neighborhood[1] = overlappingAbove.reduce((closest, s) => {
-            const sElem = document.getElementById(s.id);
-            const sCenter = s.leftvw + pxToVw(sElem.offsetWidth) / 2;
-            const closestElem = document.getElementById(closest.id);
-            const closestCenter = closest.leftvw + pxToVw(closestElem.offsetWidth) / 2;
-            return Math.abs(sCenter - centerSpelCenter) < Math.abs(closestCenter - centerSpelCenter) ? s : closest;
-          }).id;
-        }
-      }
+      // Find spels below (line below has higher topvw)
+      const belowSpels = getLine(centerSpel.topvw + lineHeight);
 
-      // [7] = spel most immediately below center spel on line below
-      const belowLineSpels = getSpelsOnLine(centerSpel.topvw + lineHeight);
-      if (belowLineSpels.length > 0) {
-        const overlappingBelow = belowLineSpels.filter(s => spelsOverlap(centerSpel, s));
-        if (overlappingBelow.length > 0) {
-          // Find the one with center closest to center spel's center
-          const centerSpelCenter = centerSpel.leftvw + pxToVw(centerElem.offsetWidth) / 2;
-          neighborhood[7] = overlappingBelow.reduce((closest, s) => {
-            const sElem = document.getElementById(s.id);
-            const sCenter = s.leftvw + pxToVw(sElem.offsetWidth) / 2;
-            const closestElem = document.getElementById(closest.id);
-            const closestCenter = closest.leftvw + pxToVw(closestElem.offsetWidth) / 2;
-            return Math.abs(sCenter - centerSpelCenter) < Math.abs(closestCenter - centerSpelCenter) ? s : closest;
-          }).id;
-        }
-      }
+      // Find rightmost overlapping spel below
+      const overlappingBelow = findOverlapping(centerSpel, belowSpels);
+      if (overlappingBelow.length > 0) {
+        const rightmost = overlappingBelow.reduce((max, s) =>
+          s.leftvw > max.leftvw ? s : max
+        );
+        neighborhood[8] = rightmost.id;
 
-      // [0] = spel to the left of [1] if it overlaps with center spel
-      if (neighborhood[1]) {
-        const spel1 = spels.get(neighborhood[1]);
-        const spel1LineSpels = getSpelsOnLine(spel1.topvw).filter(s => s.id !== spel1.id);
-        const leftOfSpel1 = spel1LineSpels.filter(s => s.leftvw < spel1.leftvw);
-        if (leftOfSpel1.length > 0) {
-          const immediateLeft = leftOfSpel1.reduce((closest, s) =>
+        // [7] = spel to the left of [8] on the same line
+        const getLine8 = spelsArray.filter(s =>
+          Math.abs(s.topvw - rightmost.topvw) <= 0.5 && s.id !== rightmost.id
+        );
+        const leftOf8 = getLine8.filter(s => s.leftvw < rightmost.leftvw);
+        if (leftOf8.length > 0) {
+          neighborhood[7] = leftOf8.reduce((closest, s) =>
             s.leftvw > closest.leftvw ? s : closest
-          );
-          if (spelsOverlap(centerSpel, immediateLeft)) {
-            neighborhood[0] = immediateLeft.id;
-          }
-        }
-      }
+          ).id;
 
-      // [2] = spel to the right of [1] if it overlaps with center spel
-      if (neighborhood[1]) {
-        const spel1 = spels.get(neighborhood[1]);
-        const spel1LineSpels = getSpelsOnLine(spel1.topvw).filter(s => s.id !== spel1.id);
-        const rightOfSpel1 = spel1LineSpels.filter(s => s.leftvw > spel1.leftvw);
-        if (rightOfSpel1.length > 0) {
-          const immediateRight = rightOfSpel1.reduce((closest, s) =>
-            s.leftvw < closest.leftvw ? s : closest
+          // [6] = spel to the left of [7]
+          const leftOf7 = getLine8.filter(s =>
+            s.leftvw < neighborhood[7] &&
+            neighborhood[7] &&
+            spels.has(neighborhood[7])
           );
-          if (spelsOverlap(centerSpel, immediateRight)) {
-            neighborhood[2] = immediateRight.id;
-          }
-        }
-      }
-
-      // [6] = spel to the left of [7] if it overlaps with center spel
-      if (neighborhood[7]) {
-        const spel7 = spels.get(neighborhood[7]);
-        const spel7LineSpels = getSpelsOnLine(spel7.topvw).filter(s => s.id !== spel7.id);
-        const leftOfSpel7 = spel7LineSpels.filter(s => s.leftvw < spel7.leftvw);
-        if (leftOfSpel7.length > 0) {
-          const immediateLeft = leftOfSpel7.reduce((closest, s) =>
-            s.leftvw > closest.leftvw ? s : closest
-          );
-          if (spelsOverlap(centerSpel, immediateLeft)) {
-            neighborhood[6] = immediateLeft.id;
-          }
-        }
-      }
-
-      // [8] = spel to the right of [7] if it overlaps with center spel
-      if (neighborhood[7]) {
-        const spel7 = spels.get(neighborhood[7]);
-        const spel7LineSpels = getSpelsOnLine(spel7.topvw).filter(s => s.id !== spel7.id);
-        const rightOfSpel7 = spel7LineSpels.filter(s => s.leftvw > spel7.leftvw);
-        if (rightOfSpel7.length > 0) {
-          const immediateRight = rightOfSpel7.reduce((closest, s) =>
-            s.leftvw < closest.leftvw ? s : closest
-          );
-          if (spelsOverlap(centerSpel, immediateRight)) {
-            neighborhood[8] = immediateRight.id;
+          if (leftOf7.length > 0) {
+            neighborhood[6] = leftOf7.reduce((closest, s) =>
+              s.leftvw > closest.leftvw ? s : closest
+            ).id;
           }
         }
       }
@@ -369,7 +272,7 @@
       let text = draftElem.innerHTML; // get existing innerHTML from from the pre element of verse cell
       let spelStart = text.search(/\S/); // find the first spel by finding first nonwhitespace
       while (spelStart != -1) {
-        newText += text.substr(0, spelStart); // grab everything up to that point including whitespace
+        newText += text.substr(0, spelStart); // grab everything up to that point
         text = text.substr(spelStart); // put the rest in text
         let spelEnd = text.search(/\s/); // find where whitespace starts again
         if (spelEnd == -1) spelEnd = text.length; // text ends with nonwhitespace
@@ -518,11 +421,11 @@
         position: absolute;
         opacity: 1;
         background-color: navajowhite;
-        transition: all .5s ease-in-out;
-        -o-transition: all .5s ease-in-out;
-        -ms-transition: all .5s ease-in-out;
-        -moz-transition: all .5s ease-in-out;
-        -webkit-transition: all .5s ease-in-out;
+        transition: all 1.5s ease-in-out;
+        -o-transition: all 1.5s ease-in-out;
+        -ms-transition: all 1.5s ease-in-out;
+        -moz-transition: all 1.5s ease-in-out;
+        -webkit-transition: all 1.5s ease-in-out;
       }
 
       .spel.visible {
@@ -580,9 +483,6 @@
     const spanned = htl.html`<div class="set"></div>`;
     spanned.innerHTML = addSpansTo(draft);
     display(spanned);
-  </script>
-  <script id="37" type="text/x-typescript" pinned="">
-    spanned.innerHTML
   </script>
   <script id="36" type="module" pinned="">
     // Import specific RiTa functions
